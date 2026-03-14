@@ -16,4 +16,4 @@ RUN pip install -e .
 EXPOSE 8080
 
 # Start the FastAPI server
-CMD sh -c "uvicorn app.api.main:app --host 0.0.0.0 --port ${PORT:-8080}"
+CMD ["/bin/sh", "-c", "uvicorn app.api.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
