@@ -4,9 +4,11 @@ Exposes lead data, campaign metrics, and system health endpoints.
 """
 
 import structlog
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from contextlib import asynccontextmanager
+from pathlib import Path
 from app.utils.logger import setup_logging
 from app.utils.config import settings
 
@@ -34,6 +36,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def root_dashboard() -> HTMLResponse:
+    """Serve the live visual dashboard at root URL."""
+    dashboard_path = Path(__file__).parent / "dashboard.html"
+    html = dashboard_path.read_text(encoding="utf-8")
+    return HTMLResponse(content=html)
+
 
 # Register routers
 from app.api.routes import leads, metrics, health

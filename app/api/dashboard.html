@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REDS — Live Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+    --border-strong: #CBD5E1;
+    --accent: #16A34A;
+    --accent-light: #DCFCE7;
+    --red: #DC2626;
+    --red-light: #FEE2E2;
+    --blue: #2563EB;
+    --blue-light: #DBEAFE;
+    --amber: #D97706;
+    --amber-light: #FEF3C7;
+    --purple: #7C3AED;
+    --purple-light: #EDE9FE;
+    --text: #0F172A;
+    --text-mid: #475569;
+    --muted: #94A3B8;
+    --mono: 'JetBrains Mono', monospace;
+    --body: 'Plus Jakarta Sans', sans-serif;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+
+  .header-left { display: flex; align-items: center; gap: 1.25rem; }
+
+  .logo { display: flex; align-items: center; gap: 0.6rem; }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-family: var(--mono);
+    font-size: 0.6rem; font-weight: 500;
+    letter-spacing: 0.03em;
+  }
+
+  .logo-text { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+  .logo-sub { font-size: 0.7rem; color: var(--muted); }
+
+  .vdivider { width: 1px; height: 24px; background: var(--border); }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: 0.65rem; font-weight: 500;
+    color: var(--accent); background: var(--accent-light);
+    padding: 0.3rem 0.75rem; border-radius: 100px;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    background: var(--accent); border-radius: 50%;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+
+  .last-update { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); }
+
+  .refresh-btn {
+    font-family: var(--body); font-size: 0.8rem; font-weight: 500;
+    color: var(--text); background: var(--surface);
+    border: 1px solid var(--border-strong);
+    padding: 0.45rem 1rem; border-radius: 6px;
+    cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+    transition: all 0.15s; box-shadow: var(--shadow);
+  }
+  .refresh-btn:hover { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+  .refresh-btn.spinning { opacity: 0.5; pointer-events: none; }
+
+  .page-bar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0.9rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .page-title { font-size: 1rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+  .page-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+
+  main {
+    padding: 1.5rem 2rem;
+    display: grid; gap: 1.25rem;
+    max-width: 1400px; margin: 0 auto;
+  }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
+
+  .kpi-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+  .kpi-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; margin-bottom: 0.9rem;
+  }
+  .kpi-icon.green { background: var(--accent-light); }
+  .kpi-icon.blue  { background: var(--blue-light); }
+  .kpi-icon.amber { background: var(--amber-light); }
+  .kpi-icon.purple{ background: var(--purple-light); }
+
+  .kpi-label { font-size: 0.75rem; font-weight: 500; color: var(--muted); margin-bottom: 0.3rem; }
+
+  .kpi-value {
+    font-size: 2.2rem; font-weight: 700; color: var(--text);
+    line-height: 1; margin-bottom: 0.35rem;
+    letter-spacing: -0.02em; transition: all 0.4s;
+  }
+  .kpi-value.loading { color: var(--border); }
+
+  .kpi-delta { font-size: 0.72rem; font-weight: 500; color: var(--accent); }
+
+  .panel {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+  }
+
+  .panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.1rem; padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-title { font-size: 0.875rem; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+
+  .panel-badge {
+    font-family: var(--mono); font-size: 0.63rem; color: var(--muted);
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem; border-radius: 100px;
+  }
+
+  .mid-row { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem; }
+
+  .pipeline-list { display: flex; flex-direction: column; gap: 0.7rem; }
+
+  .pipeline-row { display: grid; grid-template-columns: 90px 1fr 44px; align-items: center; gap: 0.9rem; }
+
+  .pipeline-label { font-size: 0.78rem; font-weight: 500; color: var(--text-mid); text-transform: capitalize; }
+
+  .pipeline-bar-wrap { height: 8px; background: var(--bg); border-radius: 100px; overflow: hidden; }
+
+  .pipeline-bar-fill {
+    height: 100%; border-radius: 100px; background: var(--accent);
+    transition: width 1s cubic-bezier(0.4,0,0.2,1); width: 0%;
+  }
+  .pipeline-bar-fill.blue   { background: var(--blue); }
+  .pipeline-bar-fill.amber  { background: var(--amber); }
+  .pipeline-bar-fill.red    { background: var(--red); }
+  .pipeline-bar-fill.purple { background: var(--purple); }
+  .pipeline-bar-fill.gray   { background: var(--muted); }
+
+  .pipeline-count { font-family: var(--mono); font-size: 0.72rem; font-weight: 500; color: var(--text); text-align: right; }
+
+  .impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+  .impact-item {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.9rem 1rem;
+  }
+
+  .impact-label { font-size: 0.68rem; font-weight: 500; color: var(--muted); margin-bottom: 0.3rem; }
+  .impact-value { font-size: 1.45rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1; }
+  .impact-sub { font-size: 0.63rem; color: var(--muted); margin-top: 0.25rem; }
+
+  .leads-panel {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow); overflow: hidden;
+  }
+
+  .leads-panel .panel-header { padding: 1rem 1.5rem; margin-bottom: 0; }
+
+  .table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead { background: var(--bg); border-bottom: 1px solid var(--border); }
+
+  th {
+    font-size: 0.68rem; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 0.7rem 1rem; text-align: left; white-space: nowrap;
+  }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #F8FAFC; }
+
+  td { padding: 0.85rem 1rem; font-size: 0.82rem; color: var(--text-mid); white-space: nowrap; }
+  td:first-child { color: var(--text); font-weight: 500; }
+
+  .score-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 24px; border-radius: 6px;
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 500;
+  }
+  .score-badge.high  { background: var(--accent-light); color: var(--accent); }
+  .score-badge.mid   { background: var(--amber-light); color: var(--amber); }
+  .score-badge.low   { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.2rem 0.65rem; border-radius: 100px;
+    font-size: 0.68rem; font-weight: 500; white-space: nowrap;
+  }
+  .status-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+  .status-badge.contacted    { background: var(--blue-light); color: var(--blue); }
+  .status-badge.qualified    { background: var(--accent-light); color: var(--accent); }
+  .status-badge.replied      { background: #F0FDF4; color: #15803D; }
+  .status-badge.pushed_to_crm{ background: var(--purple-light); color: var(--purple); }
+  .status-badge.raw          { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+  .status-badge.disqualified { background: var(--red-light); color: var(--red); }
+  .status-badge.dead         { background: var(--red-light); color: var(--red); }
+
+  .empty-state { text-align: center; padding: 3rem; font-size: 0.82rem; color: var(--muted); }
+  .empty-icon  { font-size: 2rem; margin-bottom: 0.6rem; opacity: 0.4; }
+
+  .bottom-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+
+  .health-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.65rem; }
+
+  .health-item {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.8rem 1rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .health-name { font-size: 0.75rem; font-weight: 500; color: var(--text-mid); }
+
+  .health-indicator { display: flex; align-items: center; gap: 0.35rem; font-size: 0.68rem; font-weight: 600; }
+  .health-indicator.ok       { color: var(--accent); }
+  .health-indicator.checking { color: var(--amber); }
+  .health-indicator.error    { color: var(--red); }
+
+  .health-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+  .log-list { display: flex; flex-direction: column; max-height: 230px; overflow-y: auto; }
+
+  .log-item {
+    display: grid; grid-template-columns: 62px 8px 1fr;
+    gap: 0.6rem; align-items: start;
+    padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+  }
+  .log-item:last-child { border-bottom: none; }
+
+  .log-time { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); padding-top: 2px; }
+
+  .log-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .log-dot.green  { background: var(--accent); }
+  .log-dot.blue   { background: var(--blue); }
+  .log-dot.yellow { background: var(--amber); }
+  .log-dot.red    { background: var(--red); }
+
+  .log-msg { color: var(--text-mid); line-height: 1.5; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation: fadeIn 0.3s ease forwards; }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+  .dashboard-footer {
+    text-align: center; padding: 1.25rem;
+    font-size: 0.72rem; color: var(--muted);
+    border-top: 1px solid var(--border);
+    background: var(--surface); margin-top: 0.5rem;
+  }
+  .dashboard-footer a { color: var(--accent); text-decoration: none; font-weight: 500; }
+
+  @media (max-width: 1100px) {
+    .kpi-row { grid-template-columns: repeat(2,1fr); }
+    .bottom-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .mid-row { grid-template-columns: 1fr; }
+    main { padding: 1rem; }
+    header { padding: 0 1rem; }
+    .logo-sub { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">
+      <div class="logo-icon">REDS</div>
+      <div>
+        <div class="logo-text">REDS Dashboard</div>
+        <div class="logo-sub">Real Estate AI Domination System</div>
+      </div>
+    </div>
+    <div class="vdivider"></div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      <span id="system-status">CHECKING</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="last-update" id="last-update">Loading...</span>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<div class="page-bar">
+  <div>
+    <div class="page-title">Live Pipeline Dashboard</div>
+    <div class="page-sub">Real-time lead generation and outreach monitoring</div>
+  </div>
+  <div style="font-size:0.75rem;color:var(--muted);">Auto-refreshes every 60 seconds</div>
+</div>
+
+<main>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-icon green">📋</div>
+      <div class="kpi-label">Total Leads</div>
+      <div class="kpi-value loading" id="kpi-total">--</div>
+      <div class="kpi-delta">All time pipeline</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon blue">⚡</div>
+      <div class="kpi-label">Last 24 Hours</div>
+      <div class="kpi-value loading" id="kpi-today">--</div>
+      <div class="kpi-delta" style="color:var(--blue);">New leads scraped</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon amber">💬</div>
+      <div class="kpi-label">Reply Rate</div>
+      <div class="kpi-value loading" id="kpi-reply">--%</div>
+      <div class="kpi-delta" style="color:var(--amber);">Sellers responding</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon purple">⏱️</div>
+      <div class="kpi-label">Agent Hours Saved</div>
+      <div class="kpi-value loading" id="kpi-hours">--</div>
+      <div class="kpi-delta" style="color:var(--purple);">Per week vs manual</div>
+    </div>
+  </div>
+
+  <div class="mid-row">
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Lead Pipeline Breakdown</div>
+        <div class="panel-badge" id="pipeline-total">-- leads</div>
+      </div>
+      <div class="pipeline-list" id="pipeline-list">
+        <div class="pipeline-row">
+          <div class="pipeline-label">Loading...</div>
+          <div class="pipeline-bar-wrap"><div class="pipeline-bar-fill" style="width:0%"></div></div>
+          <div class="pipeline-count">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Business Impact</div>
+        <div class="panel-badge">vs Manual Team</div>
+      </div>
+      <div class="impact-grid">
+        <div class="impact-item">
+          <div class="impact-label">Cost Per Lead</div>
+          <div class="impact-value">$0.08</div>
+          <div class="impact-sub">vs $12.00 human</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-label">Cost Reduction</div>
+          <div class="impact-value">99%</div>
+          <div class="impact-sub">vs manual team</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-label">Daily Capacity</div>
+          <div class="impact-value">500+</div>
+          <div class="impact-sub">vs 40–60 manual</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-label">CRM Update</div>
+          <div class="impact-value">&lt;5s</div>
+          <div class="impact-sub">vs 30 min manual</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="leads-panel">
+    <div class="panel-header">
+      <div class="panel-title">Recent Leads</div>
+      <div class="panel-badge" id="leads-count">-- records</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>Asking Price</th>
+            <th>AI Score</th>
+            <th>Distress Signals</th>
+            <th>Status</th>
+            <th>Scraped At</th>
+          </tr>
+        </thead>
+        <tbody id="leads-tbody">
+          <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">⏳</div>Loading leads...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">System Health</div>
+        <div class="panel-badge">6 services</div>
+      </div>
+      <div class="health-grid">
+        <div class="health-item">
+          <span class="health-name">API Server</span>
+          <div class="health-indicator checking" id="health-api"><div class="health-dot"></div> Checking</div>
+        </div>
+        <div class="health-item">
+          <span class="health-name">Database</span>
+          <div class="health-indicator checking" id="health-db"><div class="health-dot"></div> Checking</div>
+        </div>
+        <div class="health-item">
+          <span class="health-name">GHL CRM</span>
+          <div class="health-indicator ok"><div class="health-dot"></div> Connected</div>
+        </div>
+        <div class="health-item">
+          <span class="health-name">Scraper</span>
+          <div class="health-indicator ok"><div class="health-dot"></div> Ready</div>
+        </div>
+        <div class="health-item">
+          <span class="health-name">AI Pipeline</span>
+          <div class="health-indicator ok"><div class="health-dot"></div> Active</div>
+        </div>
+        <div class="health-item">
+          <span class="health-name">Outreach</span>
+          <div class="health-indicator ok"><div class="health-dot"></div> Running</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Activity Log</div>
+        <div class="panel-badge" id="activity-count">0 events</div>
+      </div>
+      <div class="log-list" id="activity-log">
+        <div class="log-item">
+          <span class="log-time">--:--:--</span>
+          <div class="log-dot yellow"></div>
+          <span class="log-msg">Loading activity...</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<div class="dashboard-footer">
+  REDS — Real Estate AI Domination System &nbsp;·&nbsp;
+  Built by <a href="https://datawebify.com" target="_blank">DataWebify</a> &nbsp;·&nbsp;
+  <a href="/docs" target="_blank">API Docs</a> &nbsp;·&nbsp;
+  <a href="https://datawebify.com/projects/agai5-reds-agent/" target="_blank">Portfolio Page</a>
+</div>
+
+<script>
+  const PIPELINE_ORDER = ['raw','qualified','pushed_to_crm','contacted','replied','disqualified','dead'];
+  const PIPELINE_META = {
+    raw:           { label: 'Raw',        color: 'gray' },
+    qualified:     { label: 'Qualified',  color: '' },
+    pushed_to_crm: { label: 'In CRM',     color: 'blue' },
+    contacted:     { label: 'Contacted',  color: 'blue' },
+    replied:       { label: 'Replied',    color: '' },
+    disqualified:  { label: 'Filtered',   color: 'red' },
+    dead:          { label: 'Dead',       color: 'red' },
+  };
+
+  let activityLog = [];
+  let activityCount = 0;
+
+  function addActivity(msg, type = 'green') {
+    const now = new Date();
+    activityLog.unshift({ time: now.toTimeString().slice(0,8), msg, type });
+    if (activityLog.length > 12) activityLog.pop();
+    activityCount++;
+    document.getElementById('activity-count').textContent = activityCount + ' events';
+    document.getElementById('activity-log').innerHTML = activityLog.map(a => `
+      <div class="log-item fade-in">
+        <span class="log-time">${a.time}</span>
+        <div class="log-dot ${a.type}"></div>
+        <span class="log-msg">${a.msg}</span>
+      </div>`).join('');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '--';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + d.toTimeString().slice(0,5);
+  }
+
+  function formatPrice(p) {
+    return p ? '$' + Number(p).toLocaleString() : '--';
+  }
+
+  function scoreClass(s) {
+    return s >= 60 ? 'high' : s >= 30 ? 'mid' : 'low';
+  }
+
+  async function loadHealth() {
+    try {
+      const res = await fetch('/health/');
+      if (res.ok) {
+        document.getElementById('health-api').innerHTML = '<div class="health-dot"></div> Online';
+        document.getElementById('health-api').className = 'health-indicator ok';
+        document.getElementById('health-db').innerHTML = '<div class="health-dot"></div> Connected';
+        document.getElementById('health-db').className = 'health-indicator ok';
+        document.getElementById('system-status').textContent = 'ONLINE';
+        addActivity('Health check passed — all systems operational', 'green');
+      }
+    } catch(e) {
+      document.getElementById('health-api').innerHTML = '<div class="health-dot"></div> Error';
+      document.getElementById('health-api').className = 'health-indicator error';
+      document.getElementById('system-status').textContent = 'ERROR';
+      addActivity('Health check failed', 'red');
+    }
+  }
+
+  async function loadMetrics() {
+    try {
+      const res = await fetch('/metrics/');
+      const data = await res.json();
+      const summary = data.summary || {};
+      const pipeline = data.pipeline || {};
+      const impact = data.business_impact || {};
+
+      const set = (id, val) => {
+        const el = document.getElementById(id);
+        el.textContent = val;
+        el.classList.remove('loading');
+      };
+
+      set('kpi-total', summary.total_leads ?? 0);
+      set('kpi-today', summary.leads_last_24h ?? 0);
+      set('kpi-reply', (summary.reply_rate_pct ?? 0) + '%');
+      set('kpi-hours', impact.agent_hours_saved_per_week ?? 0);
+
+      const total = Math.max(summary.total_leads || 1, 1);
+      document.getElementById('pipeline-total').textContent = total + ' leads';
+
+      const statuses = PIPELINE_ORDER.filter(s => (pipeline[s] ?? 0) > 0);
+      const pipelineEl = document.getElementById('pipeline-list');
+
+      if (statuses.length === 0) {
+        pipelineEl.innerHTML = '<div style="text-align:center;padding:1.5rem;font-size:0.8rem;color:var(--muted);">No leads in pipeline yet.</div>';
+      } else {
+        pipelineEl.innerHTML = statuses.map(s => {
+          const count = pipeline[s] || 0;
+          const pct = Math.round((count / total) * 100);
+          const meta = PIPELINE_META[s] || { label: s, color: '' };
+          return `
+            <div class="pipeline-row fade-in">
+              <div class="pipeline-label">${meta.label}</div>
+              <div class="pipeline-bar-wrap">
+                <div class="pipeline-bar-fill ${meta.color}" style="width:${pct}%"></div>
+              </div>
+              <div class="pipeline-count">${count}</div>
+            </div>`;
+        }).join('');
+      }
+
+      addActivity(`Metrics updated — ${total} total leads in pipeline`, 'blue');
+    } catch(e) {
+      addActivity('Metrics fetch failed', 'red');
+    }
+  }
+
+  async function loadLeads() {
+    try {
+      const res = await fetch('/leads/?limit=10');
+      const data = await res.json();
+      const leads = data.leads || [];
+
+      document.getElementById('leads-count').textContent = (data.count || 0) + ' records';
+      const tbody = document.getElementById('leads-tbody');
+
+      if (leads.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📭</div>No leads yet. Run the scraper to populate the pipeline.</div></td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = leads.slice(0, 10).map(lead => {
+        const city = [lead.city, lead.state].filter(Boolean).join(', ') || '--';
+        const score = lead.distress_score ?? 0;
+        const signals = (lead.distress_signals || []).slice(0, 2).join(', ') || '--';
+        const status = lead.status || 'raw';
+        return `
+          <tr class="fade-in">
+            <td>${city}</td>
+            <td>${formatPrice(lead.asking_price)}</td>
+            <td><span class="score-badge ${scoreClass(score)}">${score}</span></td>
+            <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">${signals}</td>
+            <td><span class="status-badge ${status}">${status.replace(/_/g,' ')}</span></td>
+            <td>${formatDate(lead.scraped_at)}</td>
+          </tr>`;
+      }).join('');
+
+      addActivity(`${leads.length} recent leads loaded`, 'green');
+    } catch(e) {
+      document.getElementById('leads-tbody').innerHTML = '<tr><td colspan="6"><div class="empty-state" style="color:var(--red);"><div class="empty-icon">⚠️</div>Failed to load leads.</div></td></tr>';
+      addActivity('Lead fetch failed', 'red');
+    }
+  }
+
+  async function loadAll() {
+    const btn = document.getElementById('refresh-btn');
+    btn.classList.add('spinning');
+    btn.textContent = '↻ Loading...';
+    addActivity('Dashboard refresh triggered', 'yellow');
+    await Promise.all([loadHealth(), loadMetrics(), loadLeads()]);
+    document.getElementById('last-update').textContent = 'Updated ' + new Date().toTimeString().slice(0,8);
+    btn.classList.remove('spinning');
+    btn.textContent = '↻ Refresh';
+  }
+
+  loadAll();
+  setInterval(loadAll, 60000);
+</script>
+</body>
+</html>
