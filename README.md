@@ -2,7 +2,7 @@
 ### AgAI_5 | DataWebify Agentic AI Portfolio
 
 **Live System:** [reds.datawebify.com](https://reds.datawebify.com)
-**Portfolio:** [datawebify.com/projects/reds_agent](https://datawebify.com/projects/reds_agent)
+**Portfolio:** [datawebify.com/projects/agai5-reds-agent](https://datawebify.com/projects/agai5-reds-agent/)
 **Built by:** Muhammad Umair — Agentic AI Specialist & Enterprise Consultant
 
 ---
@@ -106,7 +106,7 @@ FastAPI Dashboard
 ## Project Structure
 
 ```
-AgAI_5_REDS/
+AgAI-5-REDS/
 ├── app/
 │   ├── agents/
 │   │   └── craigslist_scraper.py     # Playwright FSBO scraper
@@ -217,7 +217,7 @@ Leads scoring 30+ are qualified and pushed to GHL. Leads below 30 are filtered o
 ### Installation
 
 ```bash
-git clone https://github.com/umair801/reds_agent.git
+git clone https://github.com/umair801/reds-agent.git
 cd reds_agent
 
 python -m venv venv
@@ -343,20 +343,6 @@ python tests/test_storage.py           # Verify Supabase storage
 python tests/test_ghl_push.py          # Verify CRM push
 python tests/test_reply_monitor.py     # Verify reply detection
 ```
-
----
-
-## Portfolio Context
-
-REDS is Project 5 of 50 in the DataWebify Agentic AI portfolio.
-
-| Project | System | Status |
-|---|---|---|
-| AgAI_1 | Enterprise WhatsApp Automation | Live |
-| AgAI_2 | B2B Lead Generation System | Live |
-| AgAI_3 | Enterprise AI Support Agent | Live |
-| AgAI_4 | RAG Knowledge Base Agent | Live |
-| AgAI_5 | REDS — Real Estate AI Domination System | Live |
 
 ---
 

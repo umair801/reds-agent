@@ -31,7 +31,7 @@ async def get_metrics() -> dict:
 
         # Recent leads (last 24 hours)
         since = (datetime.utcnow() - timedelta(hours=24)).isoformat()
-        recent_result = store.client.table("leads").select("id").gte(
+        recent_result = store.client.table("reds_leads").select("id").gte(
             "created_at", since
         ).execute()
         leads_last_24h = len(recent_result.data or [])

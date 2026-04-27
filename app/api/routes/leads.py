@@ -31,7 +31,7 @@ async def get_leads(
             leads = store.get_leads_by_status(lead_status)
         else:
             # Return all leads
-            result = store.client.table("leads").select("*").order(
+            result = store.client.table("reds_leads").select("*").order(
                 "created_at", desc=True
             ).limit(limit).execute()
             leads = result.data or []
@@ -54,7 +54,7 @@ async def get_lead(lead_id: str) -> dict:
     store = LeadStore()
 
     try:
-        result = store.client.table("leads").select("*").eq(
+        result = store.client.table("reds_leads").select("*").eq(
             "id", lead_id
         ).execute()
 

@@ -30,7 +30,7 @@ class LeadStore:
         """
         try:
             result = (
-                self.client.table("leads")
+                self.client.table("reds_leads")
                 .select("id")
                 .eq("source_url", source_url)
                 .execute()
@@ -67,7 +67,7 @@ class LeadStore:
                 "ghl_contact_id": lead.ghl_contact_id,
             }
 
-            result = self.client.table("leads").insert(data).execute()
+            result = self.client.table("reds_leads").insert(data).execute()
 
             if result.data:
                 lead_id = result.data[0]["id"]
@@ -93,7 +93,7 @@ class LeadStore:
             if ghl_contact_id:
                 update_data["ghl_contact_id"] = ghl_contact_id
 
-            self.client.table("leads").update(update_data).eq(
+            self.client.table("reds_leads").update(update_data).eq(
                 "source_url", source_url
             ).execute()
 
@@ -113,7 +113,7 @@ class LeadStore:
         """Fetch all leads with a given status."""
         try:
             result = (
-                self.client.table("leads")
+                self.client.table("reds_leads")
                 .select("*")
                 .eq("status", status.value)
                 .order("created_at", desc=True)
@@ -127,7 +127,7 @@ class LeadStore:
     def get_metrics(self) -> dict:
         """Return basic lead counts by status."""
         try:
-            result = self.client.table("leads").select("status").execute()
+            result = self.client.table("reds_leads").select("status").execute()
             counts: dict[str, int] = {}
             for row in result.data:
                 s = row["status"]
